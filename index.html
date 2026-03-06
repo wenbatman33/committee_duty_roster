@@ -1,173 +1,216 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>欣聯大心 社區委員輪值抽籤系統</title>
-    <meta
-      name="description"
-      content="欣聯大心社區管理委員會年度輪值抽籤系統，透過公正透明的電子抽籤方式決定各棟委員輪值順序。"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="bg-pattern"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>欣聯大心 社區委員輪值抽籤系統</title>
+  <meta name="description" content="欣聯大心社區管理委員會年度輪值抽籤系統，透過公正透明的電子抽籤方式決定各棟委員輪值順序。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-pattern"></div>
 
-    <header class="site-header">
-      <div class="header-inner">
-        <div class="header-emblem">🏛</div>
-        <div class="header-text">
-          <h1 class="site-title">欣聯大心社區</h1>
-          <p class="site-subtitle">管理委員會年度輪值抽籤系統</p>
-        </div>
-        <div class="year-badge" id="yearBadge">
-          <span class="year-label">年度</span>
-          <span class="year-value" id="currentYear"></span>
-        </div>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-emblem">🏛</div>
+      <div class="header-text">
+        <h1 class="site-title">欣聯大心社區</h1>
+        <p class="site-subtitle">管理委員會年度輪值抽籤系統</p>
       </div>
-    </header>
-
-    <main class="main-content">
-      <!-- Control Panel -->
-      <section class="control-panel" aria-label="抽籤控制面板">
-        <div class="control-inner">
-          <div class="control-info">
-            <p class="control-desc">
-              系統將從 A、B、C
-              三棟所有住戶中進行隨機抽籤，決定本年度委員輪值順序。
-            </p>
-            <div class="unit-stats">
-              <span class="stat-chip stat-a" id="statA"
-                >A棟 <strong>17</strong> 戶</span
-              >
-              <span class="stat-chip stat-b" id="statB"
-                >B棟 <strong>52</strong> 戶</span
-              >
-              <span class="stat-chip stat-c" id="statC"
-                >C棟 <strong>38</strong> 戶</span
-              >
-              <span class="stat-chip stat-total"
-                >合計 <strong>107</strong> 戶</span
-              >
-            </div>
-          </div>
-          <div class="control-buttons">
-            <button id="btnDraw" class="btn btn-draw" onclick="startDraw()">
-              <span class="btn-icon">🎰</span>
-              <span class="btn-text">開始抽籤</span>
-            </button>
-            <button
-              id="btnClear"
-              class="btn btn-clear"
-              onclick="clearDraw()"
-              disabled
-            >
-              <span class="btn-icon">🗑</span>
-              <span class="btn-text">清除結果</span>
-            </button>
-          </div>
-        </div>
-        <div id="drawStatus" class="draw-status" style="display: none"></div>
-      </section>
-
-      <!-- Buildings Section -->
-      <section class="buildings-section" aria-label="三棟大樓示意圖">
-        <h2 class="section-title">大樓示意圖</h2>
-        <div class="buildings-wrapper">
-          <!-- Building A -->
-          <div class="building-container" id="buildingA">
-            <div class="building-label building-label-a">A 棟</div>
-            <div class="building-structure">
-              <div class="building-top building-top-a">
-                <div class="roof-decor"></div>
-                <div class="building-name">A</div>
-              </div>
-              <div class="building-floors" id="floorsA"></div>
-              <div class="building-base"></div>
-            </div>
-          </div>
-
-          <!-- Building B -->
-          <div class="building-container" id="buildingB">
-            <div class="building-label building-label-b">B 棟</div>
-            <div class="building-structure building-structure-b">
-              <div class="building-top building-top-b">
-                <div class="roof-decor"></div>
-                <div class="building-name">B</div>
-              </div>
-              <div class="building-floors" id="floorsB"></div>
-              <div class="building-base"></div>
-            </div>
-          </div>
-
-          <!-- Building C -->
-          <div class="building-container" id="buildingC">
-            <div class="building-label building-label-c">C 棟</div>
-            <div class="building-structure building-structure-c">
-              <div class="building-top building-top-c">
-                <div class="roof-decor"></div>
-                <div class="building-name">C</div>
-              </div>
-              <div class="building-floors" id="floorsC"></div>
-              <div class="building-base"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Results Table Section -->
-      <section class="results-section" aria-label="輪值結果表格">
-        <h2 class="section-title">輪值順序表</h2>
-        <div id="resultsContainer" class="results-container">
-          <div class="empty-state" id="emptyState">
-            <div class="empty-icon">🎲</div>
-            <p class="empty-text">尚未進行抽籤</p>
-            <p class="empty-sub">請點擊「開始抽籤」按鈕進行隨機排序</p>
-          </div>
-          <div id="tableWrapper" class="table-wrapper" style="display: none">
-            <div class="table-actions">
-              <button class="btn-print" onclick="window.print()">
-                🖨️ 列印輪值表
-              </button>
-              <span class="table-timestamp" id="tableTimestamp"></span>
-            </div>
-            <table class="results-table" id="resultsTable">
-              <thead>
-                <tr>
-                  <th class="col-rank">輪值順序</th>
-                  <th class="col-unit">戶號</th>
-                  <th class="col-building">所屬棟別</th>
-                  <th class="col-floor">樓層</th>
-                  <th class="col-note">備註</th>
-                </tr>
-              </thead>
-              <tbody id="resultsBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <p>
-        欣聯大心社區管理委員會 &copy; <span id="footerYear"></span> ｜
-        本系統採用電子化公正抽籤
-      </p>
-    </footer>
-
-    <div id="drawerOverlay" class="drawer-overlay" style="display: none">
-      <div class="lottery-animation">
-        <div class="lottery-balls" id="lotteryBalls"></div>
-        <div class="lottery-text">抽籤進行中...</div>
+      <div class="year-badge">
+        <span class="year-label">年度</span>
+        <span class="year-value" id="currentYear"></span>
       </div>
     </div>
+  </header>
 
-    <script src="app.js"></script>
-  </body>
+  <main class="main-content">
+
+    <!-- Control Panel -->
+    <section class="control-panel" aria-label="抽籤控制面板">
+      <div class="control-inner">
+        <div class="control-info">
+          <p class="control-desc">系統將對 A、B、C 三棟住戶<strong>各自獨立</strong>進行隨機抽籤，每棟產生自己的輪值順序。</p>
+          <div class="unit-stats">
+            <span class="stat-chip stat-a">A棟 <strong>17</strong> 戶</span>
+            <span class="stat-chip stat-b">B棟 <strong>52</strong> 戶</span>
+            <span class="stat-chip stat-c">C棟 <strong>38</strong> 戶</span>
+            <span class="stat-chip stat-total">合計 <strong>107</strong> 戶</span>
+          </div>
+        </div>
+        <div class="control-buttons">
+          <button id="btnDraw" class="btn btn-draw" onclick="startDraw()">
+            <span class="btn-icon">🎰</span>
+            <span class="btn-text">開始抽籤</span>
+          </button>
+          <button id="btnClear" class="btn btn-clear" onclick="clearDraw()" disabled>
+            <span class="btn-icon">🗑</span>
+            <span class="btn-text">清除結果</span>
+          </button>
+        </div>
+      </div>
+      <div id="drawStatus" class="draw-status" style="display:none"></div>
+    </section>
+
+    <!-- Buildings Section -->
+    <section class="buildings-section" aria-label="三棟大樓示意圖">
+      <h2 class="section-title">大樓示意圖</h2>
+      <div class="buildings-wrapper">
+
+        <!-- Building A -->
+        <div class="building-container" id="buildingA">
+          <div class="building-label building-label-a">A 棟</div>
+          <div class="building-structure">
+            <div class="building-top building-top-a">
+              <div class="roof-decor"></div>
+              <div class="building-name">A</div>
+              <div class="building-unit-count" id="buildingACount">17 戶</div>
+            </div>
+            <div class="building-floors" id="floorsA"></div>
+            <div class="building-base"></div>
+          </div>
+        </div>
+
+        <!-- Building B -->
+        <div class="building-container" id="buildingB">
+          <div class="building-label building-label-b">B 棟</div>
+          <div class="building-structure building-structure-b">
+            <div class="building-top building-top-b">
+              <div class="roof-decor"></div>
+              <div class="building-name">B</div>
+              <div class="building-unit-count" id="buildingBCount">52 戶</div>
+            </div>
+            <div class="building-floors" id="floorsB"></div>
+            <div class="building-base"></div>
+          </div>
+        </div>
+
+        <!-- Building C -->
+        <div class="building-container" id="buildingC">
+          <div class="building-label building-label-c">C 棟</div>
+          <div class="building-structure building-structure-c">
+            <div class="building-top building-top-c">
+              <div class="roof-decor"></div>
+              <div class="building-name">C</div>
+              <div class="building-unit-count" id="buildingCCount">38 戶</div>
+            </div>
+            <div class="building-floors" id="floorsC"></div>
+            <div class="building-base"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Results Tables Section (split by building) -->
+    <section class="results-section" aria-label="各棟輪值結果表格">
+      <h2 class="section-title">輪值順序表</h2>
+
+      <div id="resultsContainer" class="results-container">
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">🎲</div>
+          <p class="empty-text">尚未進行抽籤</p>
+          <p class="empty-sub">請點擊「開始抽籤」按鈕，A、B、C 三棟將分別進行獨立隨機排序</p>
+        </div>
+
+        <!-- Tables after draw -->
+        <div id="tableWrapper" style="display:none">
+          <div class="table-actions">
+            <button class="btn-print" onclick="window.print()">🖨️ 列印輪值表</button>
+            <span class="table-timestamp" id="tableTimestamp"></span>
+          </div>
+
+          <!-- Three columns of tables -->
+          <div class="tables-grid">
+
+            <!-- A棟 Table -->
+            <div class="building-table-block building-table-a">
+              <div class="table-block-header">
+                <span class="table-block-title">A 棟輪值表</span>
+                <span class="table-block-count">共 17 戶</span>
+              </div>
+              <div class="table-scroll">
+                <table class="results-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">順序</th>
+                      <th class="col-unit">戶號</th>
+                      <th class="col-floor">樓層</th>
+                      <th class="col-note">備註</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsBodyA"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- B棟 Table -->
+            <div class="building-table-block building-table-b">
+              <div class="table-block-header">
+                <span class="table-block-title">B 棟輪值表</span>
+                <span class="table-block-count">共 52 戶</span>
+              </div>
+              <div class="table-scroll">
+                <table class="results-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">順序</th>
+                      <th class="col-unit">戶號</th>
+                      <th class="col-floor">樓層</th>
+                      <th class="col-note">備註</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsBodyB"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- C棟 Table -->
+            <div class="building-table-block building-table-c">
+              <div class="table-block-header">
+                <span class="table-block-title">C 棟輪值表</span>
+                <span class="table-block-count">共 38 戶</span>
+              </div>
+              <div class="table-scroll">
+                <table class="results-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">順序</th>
+                      <th class="col-unit">戶號</th>
+                      <th class="col-floor">樓層</th>
+                      <th class="col-note">備註</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsBodyC"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div><!-- /tables-grid -->
+        </div><!-- /tableWrapper -->
+
+      </div><!-- /resultsContainer -->
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>欣聯大心社區管理委員會 &copy; <span id="footerYear"></span> ｜ 各棟獨立抽籤，公正透明</p>
+  </footer>
+
+  <!-- Lottery animation overlay -->
+  <div id="drawerOverlay" class="drawer-overlay" style="display:none">
+    <div class="lottery-animation">
+      <div class="lottery-balls" id="lotteryBalls"></div>
+      <div class="lottery-text">三棟各自抽籤進行中...</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
 </html>

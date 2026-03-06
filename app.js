@@ -1,6 +1,6 @@
 /**
  * 欣聯大心社區委員輪值抽籤系統
- * 住戶資料與抽籤邏輯
+ * A、B、C 三棟各自獨立抽籤排序
  */
 
 // =====================
@@ -8,27 +8,27 @@
 // =====================
 
 function generateUnits() {
-  const units = [];
+  const aUnits = [],
+    bUnits = [],
+    cUnits = [];
 
   // ---- A棟 ----
-  // A1-1F (1樓只有A1)
-  units.push({
+  aUnits.push({
     id: "A1-1F",
     building: "A",
     unit: "A1",
     floor: 1,
     label: "A1-1F",
   });
-  // A1, A2 從2~9樓
   for (let f = 2; f <= 9; f++) {
-    units.push({
+    aUnits.push({
       id: `A1-${f}F`,
       building: "A",
       unit: "A1",
       floor: f,
       label: `A1-${f}F`,
     });
-    units.push({
+    aUnits.push({
       id: `A2-${f}F`,
       building: "A",
       unit: "A2",
@@ -38,10 +38,9 @@ function generateUnits() {
   }
 
   // ---- B棟 ----
-  // B1~B4 從2~14樓
   for (let f = 2; f <= 14; f++) {
     for (let u = 1; u <= 4; u++) {
-      units.push({
+      bUnits.push({
         id: `B${u}-${f}F`,
         building: "B",
         unit: `B${u}`,
@@ -52,25 +51,23 @@ function generateUnits() {
   }
 
   // ---- C棟 ----
-  // 2樓只有C2, C3
-  units.push({
+  cUnits.push({
     id: "C2-2F",
     building: "C",
     unit: "C2",
     floor: 2,
     label: "C2-2F",
   });
-  units.push({
+  cUnits.push({
     id: "C3-2F",
     building: "C",
     unit: "C3",
     floor: 2,
     label: "C3-2F",
   });
-  // C1~C3 從3~14樓
   for (let f = 3; f <= 14; f++) {
     for (let u = 1; u <= 3; u++) {
-      units.push({
+      cUnits.push({
         id: `C${u}-${f}F`,
         building: "C",
         unit: `C${u}`,
@@ -80,11 +77,13 @@ function generateUnits() {
     }
   }
 
-  return units;
+  return { A: aUnits, B: bUnits, C: cUnits };
 }
 
 const ALL_UNITS = generateUnits();
-let drawResult = [];
+
+// 各棟抽籤結果（各自排序）
+let drawResults = { A: [], B: [], C: [] };
 let isDrawing = false;
 
 // =====================
@@ -92,8 +91,7 @@ let isDrawing = false;
 // =====================
 
 document.addEventListener("DOMContentLoaded", () => {
-  const now = new Date();
-  const year = now.getFullYear();
+  const year = new Date().getFullYear();
   document.getElementById("currentYear").textContent = year + " 年";
   document.getElementById("footerYear").textContent = year;
 
@@ -115,20 +113,35 @@ function renderBuildingA() {
   const container = document.getElementById("floorsA");
   container.innerHTML = "";
 
-  // 1樓：只有A1
-  const row1 = createFloorRowA(1, ["A1-1F"]);
-  container.appendChild(row1);
-
-  // 9樓 → 2樓（由上到下渲染高樓層）
+  // 9F → 2F 由上至下，最後是 1F
   for (let f = 9; f >= 2; f--) {
-    const row = createFloorRowA(f, [`A1-${f}F`, `A2-${f}F`]);
-    container.insertBefore(row, container.firstChild);
+    container.appendChild(createFloorRow("A", f, [`A1-${f}F`, `A2-${f}F`]));
   }
-  // 把1樓放最底
-  container.appendChild(row1);
+  container.appendChild(createFloorRow("A", 1, ["A1-1F"]));
 }
 
-function createFloorRowA(floor, unitIds) {
+function renderBuildingB() {
+  const container = document.getElementById("floorsB");
+  container.innerHTML = "";
+  for (let f = 14; f >= 2; f--) {
+    const ids = [];
+    for (let u = 1; u <= 4; u++) ids.push(`B${u}-${f}F`);
+    container.appendChild(createFloorRow("B", f, ids));
+  }
+}
+
+function renderBuildingC() {
+  const container = document.getElementById("floorsC");
+  container.innerHTML = "";
+  for (let f = 14; f >= 3; f--) {
+    const ids = [];
+    for (let u = 1; u <= 3; u++) ids.push(`C${u}-${f}F`);
+    container.appendChild(createFloorRow("C", f, ids));
+  }
+  container.appendChild(createFloorRow("C", 2, ["C2-2F", "C3-2F"]));
+}
+
+function createFloorRow(building, floor, unitIds) {
   const row = document.createElement("div");
   row.className = "floor-row";
 
@@ -139,7 +152,7 @@ function createFloorRowA(floor, unitIds) {
 
   unitIds.forEach((uid) => {
     const cell = document.createElement("div");
-    cell.className = "unit-cell unit-cell-a undrawn";
+    cell.className = `unit-cell unit-cell-${building.toLowerCase()} undrawn`;
     cell.id = "cell-" + uid;
     cell.setAttribute("data-unit", uid);
     cell.setAttribute("title", uid);
@@ -152,95 +165,6 @@ function createFloorRowA(floor, unitIds) {
   });
 
   return row;
-}
-
-function renderBuildingB() {
-  const container = document.getElementById("floorsB");
-  container.innerHTML = "";
-
-  for (let f = 14; f >= 2; f--) {
-    const row = document.createElement("div");
-    row.className = "floor-row";
-
-    const label = document.createElement("div");
-    label.className = "floor-label";
-    label.textContent = f + "F";
-    row.appendChild(label);
-
-    for (let u = 1; u <= 4; u++) {
-      const uid = `B${u}-${f}F`;
-      const cell = document.createElement("div");
-      cell.className = "unit-cell unit-cell-b undrawn";
-      cell.id = "cell-" + uid;
-      cell.setAttribute("data-unit", uid);
-      cell.setAttribute("title", uid);
-
-      const inner = document.createElement("div");
-      inner.className = "unit-rank";
-      inner.innerHTML = `<span class="unit-id-text">${uid}</span>`;
-      cell.appendChild(inner);
-      row.appendChild(cell);
-    }
-
-    container.appendChild(row);
-  }
-}
-
-function renderBuildingC() {
-  const container = document.getElementById("floorsC");
-  container.innerHTML = "";
-
-  // 14F → 3F: C1, C2, C3
-  for (let f = 14; f >= 3; f--) {
-    const row = document.createElement("div");
-    row.className = "floor-row";
-
-    const label = document.createElement("div");
-    label.className = "floor-label";
-    label.textContent = f + "F";
-    row.appendChild(label);
-
-    for (let u = 1; u <= 3; u++) {
-      const uid = `C${u}-${f}F`;
-      const cell = document.createElement("div");
-      cell.className = "unit-cell unit-cell-c undrawn";
-      cell.id = "cell-" + uid;
-      cell.setAttribute("data-unit", uid);
-      cell.setAttribute("title", uid);
-
-      const inner = document.createElement("div");
-      inner.className = "unit-rank";
-      inner.innerHTML = `<span class="unit-id-text">${uid}</span>`;
-      cell.appendChild(inner);
-      row.appendChild(cell);
-    }
-
-    container.appendChild(row);
-  }
-
-  // 2F: C2, C3 only
-  const row2 = document.createElement("div");
-  row2.className = "floor-row";
-  const label2 = document.createElement("div");
-  label2.className = "floor-label";
-  label2.textContent = "2F";
-  row2.appendChild(label2);
-
-  ["C2-2F", "C3-2F"].forEach((uid) => {
-    const cell = document.createElement("div");
-    cell.className = "unit-cell unit-cell-c undrawn";
-    cell.id = "cell-" + uid;
-    cell.setAttribute("data-unit", uid);
-    cell.setAttribute("title", uid);
-
-    const inner = document.createElement("div");
-    inner.className = "unit-rank";
-    inner.innerHTML = `<span class="unit-id-text">${uid}</span>`;
-    cell.appendChild(inner);
-    row2.appendChild(cell);
-  });
-
-  container.appendChild(row2);
 }
 
 // =====================
@@ -265,49 +189,53 @@ function startDraw() {
   btnDraw.disabled = true;
   document.getElementById("btnClear").disabled = true;
 
-  // Show overlay
+  // Show overlay with animated balls
   const overlay = document.getElementById("drawerOverlay");
-  const ballsContainer = document.getElementById("lotteryBalls");
-  ballsContainer.innerHTML = `
+  document.getElementById("lotteryBalls").innerHTML = `
     <div class="lottery-ball">A</div>
     <div class="lottery-ball">B</div>
     <div class="lottery-ball">C</div>
   `;
   overlay.style.display = "flex";
 
-  // Simulate draw delay for suspense
   setTimeout(() => {
-    drawResult = shuffleArray(ALL_UNITS);
-    overlay.style.display = "none";
+    // 三棟各自洗牌
+    drawResults.A = shuffleArray(ALL_UNITS.A);
+    drawResults.B = shuffleArray(ALL_UNITS.B);
+    drawResults.C = shuffleArray(ALL_UNITS.C);
 
+    overlay.style.display = "none";
     btnDraw.classList.remove("loading");
     btnDraw.disabled = false;
     document.getElementById("btnClear").disabled = false;
     isDrawing = false;
 
-    // Animate cells
-    animateCells(drawResult);
+    // 各棟動畫展示號碼
+    animateBuildingCells("A", drawResults.A);
+    animateBuildingCells("B", drawResults.B);
+    animateBuildingCells("C", drawResults.C);
 
-    // Update table
-    renderResultTable(drawResult);
+    // 渲染分棟表格
+    renderResultTable(drawResults);
+    saveResult(drawResults);
 
-    // Save result
-    saveResult(drawResult);
-
-    // Show status
+    const totalA = drawResults.A.length;
+    const totalB = drawResults.B.length;
+    const totalC = drawResults.C.length;
     const status = document.getElementById("drawStatus");
     status.style.display = "block";
-    status.textContent = `✅ 抽籤完成！共 ${drawResult.length} 戶完成排序`;
+    status.textContent = `✅ 抽籤完成！A棟 ${totalA} 戶 ／ B棟 ${totalB} 戶 ／ C棟 ${totalC} 戶，各自完成獨立排序`;
   }, 2200);
 }
 
-function animateCells(result) {
+function animateBuildingCells(building, result) {
   result.forEach((unit, index) => {
+    // 錯開各棟動畫起始時間，讓三棟看起來同步但有細微差異
+    const baseDelay = { A: 0, B: 50, C: 100 }[building] || 0;
     setTimeout(
       () => {
         const cell = document.getElementById("cell-" + unit.id);
         if (!cell) return;
-
         cell.classList.remove("undrawn");
         cell.classList.add("drawn");
 
@@ -317,50 +245,56 @@ function animateCells(result) {
         <span class="unit-rank-num">#${index + 1}</span>
       `;
       },
-      Math.min(index * 12, 2000) + Math.random() * 80,
+      baseDelay + Math.min(index * 18, 2400) + Math.random() * 60,
     );
   });
 }
 
 function clearDraw() {
-  drawResult = [];
+  drawResults = { A: [], B: [], C: [] };
   localStorage.removeItem("dutyDrawResult");
 
-  // Reset all cells
   document.querySelectorAll(".unit-cell").forEach((cell) => {
     cell.classList.remove("drawn");
     cell.classList.add("undrawn");
-
     const uid = cell.getAttribute("data-unit");
-    const inner = cell.querySelector(".unit-rank");
-    inner.innerHTML = `<span class="unit-id-text">${uid}</span>`;
+    cell.querySelector(".unit-rank").innerHTML =
+      `<span class="unit-id-text">${uid}</span>`;
   });
 
-  // Clear table
   document.getElementById("emptyState").style.display = "block";
   document.getElementById("tableWrapper").style.display = "none";
-
-  // Hide status
   document.getElementById("drawStatus").style.display = "none";
-
-  // Reset buttons
   document.getElementById("btnClear").disabled = true;
 }
 
 // =====================
-// 結果表格
+// 結果表格（三棟分頁）
 // =====================
 
-function renderResultTable(result) {
-  const body = document.getElementById("resultsBody");
-  body.innerHTML = "";
+function renderResultTable(results) {
+  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("tableWrapper").style.display = "block";
 
-  result.forEach((unit, index) => {
+  // 填寫各棟 tbody
+  renderBuildingTable("A", results.A);
+  renderBuildingTable("B", results.B);
+  renderBuildingTable("C", results.C);
+
+  const now = new Date();
+  document.getElementById("tableTimestamp").textContent =
+    `抽籤時間：${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+}
+
+function renderBuildingTable(building, units) {
+  const tbody = document.getElementById(`resultsBody${building}`);
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  units.forEach((unit, index) => {
     const rank = index + 1;
     const tr = document.createElement("tr");
-    tr.style.animationDelay = `${Math.min(index * 8, 400)}ms`;
 
-    const buildingTag = `<span class="building-tag tag-${unit.building.toLowerCase()}">${unit.building} 棟</span>`;
     let rankClass = "rank-other";
     if (rank === 1) rankClass = "rank-1";
     else if (rank === 2) rankClass = "rank-2";
@@ -374,36 +308,28 @@ function renderResultTable(result) {
     tr.innerHTML = `
       <td><span class="rank-badge ${rankClass}">${rank}</span></td>
       <td><span class="unit-code">${unit.label}</span></td>
-      <td>${buildingTag}</td>
       <td>${unit.floor} 樓</td>
       <td style="color:var(--clr-text-muted);font-size:0.82rem">${note}</td>
     `;
-    body.appendChild(tr);
+    tbody.appendChild(tr);
   });
-
-  document.getElementById("emptyState").style.display = "none";
-  document.getElementById("tableWrapper").style.display = "block";
-
-  const now = new Date();
-  document.getElementById("tableTimestamp").textContent =
-    `抽籤時間：${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
 // =====================
-// 本地儲存 (LocalStorage)
+// 本地儲存
 // =====================
 
-function saveResult(result) {
+function saveResult(results) {
   try {
     localStorage.setItem(
       "dutyDrawResult",
       JSON.stringify({
-        result,
+        results,
         timestamp: new Date().toISOString(),
       }),
     );
   } catch (e) {
-    console.warn("Unable to save to localStorage:", e);
+    console.warn("Unable to save:", e);
   }
 }
 
@@ -411,37 +337,36 @@ function loadSavedResult() {
   try {
     const saved = localStorage.getItem("dutyDrawResult");
     if (!saved) return;
+    const { results, timestamp } = JSON.parse(saved);
+    if (!results || !results.A) return;
 
-    const { result, timestamp } = JSON.parse(saved);
-    if (!result || result.length === 0) return;
+    drawResults = results;
 
-    drawResult = result;
-
-    // Restore cells immediately
-    result.forEach((unit, index) => {
-      const cell = document.getElementById("cell-" + unit.id);
-      if (!cell) return;
-      cell.classList.remove("undrawn");
-      cell.classList.add("drawn");
-      const inner = cell.querySelector(".unit-rank");
-      inner.innerHTML = `
-        <span class="unit-id-text">${unit.id}</span>
-        <span class="unit-rank-num">#${index + 1}</span>
-      `;
+    // 還原各棟格子顯示
+    ["A", "B", "C"].forEach((b) => {
+      (results[b] || []).forEach((unit, index) => {
+        const cell = document.getElementById("cell-" + unit.id);
+        if (!cell) return;
+        cell.classList.remove("undrawn");
+        cell.classList.add("drawn");
+        cell.querySelector(".unit-rank").innerHTML = `
+          <span class="unit-id-text">${unit.id}</span>
+          <span class="unit-rank-num">#${index + 1}</span>
+        `;
+      });
     });
 
-    renderResultTable(result);
+    renderResultTable(results);
     document.getElementById("btnClear").disabled = false;
 
-    // Update timestamp from saved
     const d = new Date(timestamp);
     document.getElementById("tableTimestamp").textContent =
       `抽籤時間：${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}（已儲存結果）`;
 
     const status = document.getElementById("drawStatus");
     status.style.display = "block";
-    status.textContent = `✅ 已載入上次抽籤結果（共 ${result.length} 戶）`;
+    status.textContent = `✅ 已載入上次抽籤結果（A棟 ${results.A.length} 戶 ／ B棟 ${results.B.length} 戶 ／ C棟 ${results.C.length} 戶）`;
   } catch (e) {
-    console.warn("Unable to load from localStorage:", e);
+    console.warn("Unable to load:", e);
   }
 }
