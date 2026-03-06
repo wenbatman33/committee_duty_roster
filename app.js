@@ -375,7 +375,7 @@ function loadSavedResult() {
 
 async function saveToCloud() {
   if (!APPS_SCRIPT_URL) {
-    showCloudMsg("⚠️ 尚未設定 Apps Script URL，請參閱設定說明", "warn");
+    showCloudMsg("⚠️ 尚未設定 Apps Script URL", "warn");
     return;
   }
   if (!drawResults.A || drawResults.A.length === 0) {
@@ -390,10 +390,14 @@ async function saveToCloud() {
   const btnSave = document.getElementById("btnSaveCloud");
   btnSave.disabled = true;
   btnSave.textContent = "儲存中...";
+  showCloudMsg("☁️ 傳送資料中，請稍候...", "info");
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
+    // 使用 no-cors 繞過 CORS preflight 限制
+    // 缺點是無法讀取回應內容，改為事後重新載入清單確認
+    await fetch(APPS_SCRIPT_URL, {
       method: "POST",
+      mode: "no-cors",
       body: JSON.stringify({
         action: "save",
         name,
@@ -401,14 +405,13 @@ async function saveToCloud() {
         results: drawResults,
       }),
     });
-    const data = await resp.json();
 
-    if (data.success) {
-      showCloudMsg("☁️ " + data.message, "success");
-      loadCloudHistory(); // 重新載入歷史清單
-    } else {
-      showCloudMsg("❌ 儲存失敗：" + data.error, "error");
-    }
+    showCloudMsg("☁️ 已送出，等待試算表確認...", "success");
+
+    // 等 2 秒後重新載入清單確認是否儲存成功
+    setTimeout(() => {
+      loadCloudHistory();
+    }, 2000);
   } catch (e) {
     showCloudMsg("❌ 連線失敗：" + e.message, "error");
   } finally {
@@ -536,28 +539,28 @@ async function deleteHistoryRecord(id, btn) {
   btn.textContent = "刪除中...";
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
+    // no-cors 繞過 CORS preflight
+    await fetch(APPS_SCRIPT_URL, {
       method: "POST",
+      mode: "no-cors",
       body: JSON.stringify({ action: "delete", id }),
     });
-    const data = await resp.json();
 
-    if (data.success) {
-      const item = document.querySelector(`.history-item[data-id="${id}"]`);
-      if (item) {
-        item.style.animation = "fadeOut 0.3s ease forwards";
-        setTimeout(() => item.remove(), 300);
-      }
-      showCloudMsg("🗑 記錄已刪除", "success");
-    } else {
-      showCloudMsg("❌ 刪除失敗：" + data.error, "error");
-      btn.disabled = false;
-      btn.textContent = "刪除";
+    // 樂觀移除（假設成功），1.5 秒後重新載入確認
+    const item = document.querySelector(`.history-item[data-id="${id}"]`);
+    if (item) {
+      item.style.animation = "fadeOut 0.3s ease forwards";
+      setTimeout(() => item.remove(), 300);
     }
+    showCloudMsg("🗑 刪除中，等待確認...", "success");
+
+    setTimeout(() => {
+      loadCloudHistory();
+    }, 1500);
   } catch (e) {
     showCloudMsg("❌ 連線失敗", "error");
     btn.disabled = false;
-    btn.textContent = "刪除";
+    btn.textContent = "🗑 刪除";
   }
 }
 
