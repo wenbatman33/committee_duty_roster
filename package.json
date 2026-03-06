@@ -12,7 +12,7 @@
   "dependencies": {
     "vue-router": "^4.6.4"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.",
   "main": "app.js",
   "repository": {
