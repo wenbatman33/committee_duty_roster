@@ -393,25 +393,29 @@ async function saveToCloud() {
   showCloudMsg("☁️ 傳送資料中，請稍候...", "info");
 
   try {
-    // 使用 no-cors 繞過 CORS preflight 限制
-    // 缺點是無法讀取回應內容，改為事後重新載入清單確認
+    // 只傳 ID 順序（不傳完整物件，大幅減少資料量）
+    const orderA = drawResults.A.map((u) => u.id);
+    const orderB = drawResults.B.map((u) => u.id);
+    const orderC = drawResults.C.map((u) => u.id);
+
     await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      mode: "no-cors",
+      mode: "no-cors", // 繞過 CORS preflight
       body: JSON.stringify({
         action: "save",
         name,
         year,
-        results: drawResults,
+        orderA,
+        orderB,
+        orderC,
+        totalA: orderA.length,
+        totalB: orderB.length,
+        totalC: orderC.length,
       }),
     });
 
     showCloudMsg("☁️ 已送出，等待試算表確認...", "success");
-
-    // 等 2 秒後重新載入清單確認是否儲存成功
-    setTimeout(() => {
-      loadCloudHistory();
-    }, 2000);
+    setTimeout(() => loadCloudHistory(), 2000);
   } catch (e) {
     showCloudMsg("❌ 連線失敗：" + e.message, "error");
   } finally {
@@ -476,7 +480,10 @@ function createHistoryItem(rec) {
     </div>
   `;
   item.setAttribute("data-id", rec.id);
-  item.setAttribute("data-results", JSON.stringify(rec.results));
+  // 只存 ID 順序字串，不存完整物件
+  item.setAttribute("data-order-a", rec.orderA || "");
+  item.setAttribute("data-order-b", rec.orderB || "");
+  item.setAttribute("data-order-c", rec.orderC || "");
   return item;
 }
 
@@ -485,8 +492,34 @@ function loadHistoryRecord(id) {
   if (!item) return;
 
   try {
-    const results = JSON.parse(item.getAttribute("data-results"));
-    if (!results || !results.A) return;
+    // 從 ID 順序字串重建完整 drawResults
+    const toFullUnits = (orderStr, building) => {
+      if (!orderStr) return [];
+      const unitMap = {};
+      ALL_UNITS[building].forEach((u) => {
+        unitMap[u.id] = u;
+      });
+      return orderStr
+        .split(",")
+        .filter(Boolean)
+        .map((id) => unitMap[id])
+        .filter(Boolean);
+    };
+
+    const orderA = item.getAttribute("data-order-a") || "";
+    const orderB = item.getAttribute("data-order-b") || "";
+    const orderC = item.getAttribute("data-order-c") || "";
+
+    const results = {
+      A: toFullUnits(orderA, "A"),
+      B: toFullUnits(orderB, "B"),
+      C: toFullUnits(orderC, "C"),
+    };
+
+    if (!results.A.length && !results.B.length && !results.C.length) {
+      showCloudMsg("❌ 無法載入記錄（資料格式不相容）", "error");
+      return;
+    }
 
     drawResults = results;
 
