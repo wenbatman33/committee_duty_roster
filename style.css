@@ -1109,6 +1109,22 @@ body > * { position: relative; z-index: 1; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-seq {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(232,200,106,0.12);
+  border: 1px solid rgba(232,200,106,0.25);
+  color: var(--clr-gold);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
 
 .history-item-meta {

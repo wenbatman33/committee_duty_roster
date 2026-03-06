@@ -448,19 +448,28 @@ async function loadCloudHistory() {
 }
 
 function createHistoryItem(rec) {
-  const d = new Date(rec.timestamp);
-  const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  // 優先使用已格式化的 drawDate，否則自行格式化 timestamp
+  let dateStr = rec.drawDate || "";
+  if (!dateStr && rec.timestamp) {
+    const d = new Date(rec.timestamp);
+    dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  const seqLabel = rec.seq ? `#${rec.seq}` : rec.id;
 
   const item = document.createElement("div");
   item.className = "history-item";
   item.innerHTML = `
     <div class="history-item-info">
-      <div class="history-item-name">${escapeHtml(rec.name)}</div>
-      <div class="history-item-meta">${dateStr} ｜ A棟${rec.totalA}戶 B棟${rec.totalB}戶 C棟${rec.totalC}戶</div>
+      <div class="history-item-name">
+        <span class="history-seq">${escapeHtml(seqLabel)}</span>
+        ${escapeHtml(rec.name)}
+      </div>
+      <div class="history-item-meta">${dateStr} ｜ A棟 ${rec.totalA} 戶 ／ B棟 ${rec.totalB} 戶 ／ C棟 ${rec.totalC} 戶</div>
     </div>
     <div class="history-item-actions">
-      <button class="btn-history-load" onclick="loadHistoryRecord('${rec.id}')">載入</button>
-      <button class="btn-history-delete" onclick="deleteHistoryRecord('${rec.id}', this)">刪除</button>
+      <button class="btn-history-load" onclick="loadHistoryRecord('${rec.id}')">📋 載入</button>
+      <button class="btn-history-delete" onclick="deleteHistoryRecord('${rec.id}', this)">🗑 刪除</button>
     </div>
   `;
   item.setAttribute("data-id", rec.id);
