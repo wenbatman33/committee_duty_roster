@@ -6,7 +6,8 @@
 // =====================
 // ⚙️ 設定：請將 Apps Script Web App URL 貼在這裡
 // =====================
-const APPS_SCRIPT_URL = "";
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbzLOPcNMRb2d6uf4xZQIQwQOYs2-D87e_aKvItwrUuOa_SYiG9md0Nc6I-nWSyWR-2z/exec";
 // 如果留空，只使用 LocalStorage（離線模式）
 
 // =====================
