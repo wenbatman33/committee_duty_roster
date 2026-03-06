@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>欣聯大心 社區委員輪值抽籤系統</title>
-  <meta name="description" content="欣聯大心社區管理委員會年度輪值抽籤系統，透過公正透明的電子抽籤方式決定各棟委員輪值順序。" />
+  <meta name="description" content="欣聯大心社區管理委員會年度輪值抽籤系統，A、B、C三棟各自獨立抽籤，支援 Google 試算表雲端儲存。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -20,9 +20,13 @@
         <h1 class="site-title">欣聯大心社區</h1>
         <p class="site-subtitle">管理委員會年度輪值抽籤系統</p>
       </div>
-      <div class="year-badge">
-        <span class="year-label">年度</span>
-        <span class="year-value" id="currentYear"></span>
+      <div class="header-right">
+        <span class="mode-badge cloud-badge" id="cloudBadge" style="display:none">☁️ 雲端模式</span>
+        <span class="mode-badge offline-badge" id="offlineBadge" style="display:none">💾 離線模式</span>
+        <div class="year-badge">
+          <span class="year-label">年度</span>
+          <span class="year-value" id="currentYear"></span>
+        </div>
       </div>
     </div>
   </header>
@@ -53,6 +57,16 @@
         </div>
       </div>
       <div id="drawStatus" class="draw-status" style="display:none"></div>
+
+      <!-- Save Panel (shows after draw) -->
+      <div id="savePanel" class="save-panel" style="display:none">
+        <div class="save-panel-inner">
+          <span class="save-label">儲存此次結果：</span>
+          <input type="text" id="saveNameInput" class="save-name-input" placeholder="例：2026 年度輪值抽籤" maxlength="40" />
+          <button id="btnSaveCloud" class="btn btn-save-cloud" onclick="saveToCloud()">☁️ 儲存到試算表</button>
+        </div>
+        <div id="cloudMsg" class="cloud-msg" style="display:none"></div>
+      </div>
     </section>
 
     <!-- Buildings Section -->
@@ -67,7 +81,7 @@
             <div class="building-top building-top-a">
               <div class="roof-decor"></div>
               <div class="building-name">A</div>
-              <div class="building-unit-count" id="buildingACount">17 戶</div>
+              <div class="building-unit-count">17 戶</div>
             </div>
             <div class="building-floors" id="floorsA"></div>
             <div class="building-base"></div>
@@ -81,7 +95,7 @@
             <div class="building-top building-top-b">
               <div class="roof-decor"></div>
               <div class="building-name">B</div>
-              <div class="building-unit-count" id="buildingBCount">52 戶</div>
+              <div class="building-unit-count">52 戶</div>
             </div>
             <div class="building-floors" id="floorsB"></div>
             <div class="building-base"></div>
@@ -95,7 +109,7 @@
             <div class="building-top building-top-c">
               <div class="roof-decor"></div>
               <div class="building-name">C</div>
-              <div class="building-unit-count" id="buildingCCount">38 戶</div>
+              <div class="building-unit-count">38 戶</div>
             </div>
             <div class="building-floors" id="floorsC"></div>
             <div class="building-base"></div>
@@ -105,30 +119,25 @@
       </div>
     </section>
 
-    <!-- Results Tables Section (split by building) -->
+    <!-- Results Tables Section -->
     <section class="results-section" aria-label="各棟輪值結果表格">
       <h2 class="section-title">輪值順序表</h2>
-
       <div id="resultsContainer" class="results-container">
 
-        <!-- Empty State -->
         <div class="empty-state" id="emptyState">
           <div class="empty-icon">🎲</div>
           <p class="empty-text">尚未進行抽籤</p>
           <p class="empty-sub">請點擊「開始抽籤」按鈕，A、B、C 三棟將分別進行獨立隨機排序</p>
         </div>
 
-        <!-- Tables after draw -->
         <div id="tableWrapper" style="display:none">
           <div class="table-actions">
             <button class="btn-print" onclick="window.print()">🖨️ 列印輪值表</button>
             <span class="table-timestamp" id="tableTimestamp"></span>
           </div>
-
-          <!-- Three columns of tables -->
           <div class="tables-grid">
 
-            <!-- A棟 Table -->
+            <!-- A棟 -->
             <div class="building-table-block building-table-a">
               <div class="table-block-header">
                 <span class="table-block-title">A 棟輪值表</span>
@@ -136,20 +145,18 @@
               </div>
               <div class="table-scroll">
                 <table class="results-table">
-                  <thead>
-                    <tr>
-                      <th class="col-rank">順序</th>
-                      <th class="col-unit">戶號</th>
-                      <th class="col-floor">樓層</th>
-                      <th class="col-note">備註</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th class="col-rank">順序</th>
+                    <th class="col-unit">戶號</th>
+                    <th class="col-floor">樓層</th>
+                    <th class="col-note">備註</th>
+                  </tr></thead>
                   <tbody id="resultsBodyA"></tbody>
                 </table>
               </div>
             </div>
 
-            <!-- B棟 Table -->
+            <!-- B棟 -->
             <div class="building-table-block building-table-b">
               <div class="table-block-header">
                 <span class="table-block-title">B 棟輪值表</span>
@@ -157,20 +164,18 @@
               </div>
               <div class="table-scroll">
                 <table class="results-table">
-                  <thead>
-                    <tr>
-                      <th class="col-rank">順序</th>
-                      <th class="col-unit">戶號</th>
-                      <th class="col-floor">樓層</th>
-                      <th class="col-note">備註</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th class="col-rank">順序</th>
+                    <th class="col-unit">戶號</th>
+                    <th class="col-floor">樓層</th>
+                    <th class="col-note">備註</th>
+                  </tr></thead>
                   <tbody id="resultsBodyB"></tbody>
                 </table>
               </div>
             </div>
 
-            <!-- C棟 Table -->
+            <!-- C棟 -->
             <div class="building-table-block building-table-c">
               <div class="table-block-header">
                 <span class="table-block-title">C 棟輪值表</span>
@@ -178,29 +183,42 @@
               </div>
               <div class="table-scroll">
                 <table class="results-table">
-                  <thead>
-                    <tr>
-                      <th class="col-rank">順序</th>
-                      <th class="col-unit">戶號</th>
-                      <th class="col-floor">樓層</th>
-                      <th class="col-note">備註</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th class="col-rank">順序</th>
+                    <th class="col-unit">戶號</th>
+                    <th class="col-floor">樓層</th>
+                    <th class="col-note">備註</th>
+                  </tr></thead>
                   <tbody id="resultsBodyC"></tbody>
                 </table>
               </div>
             </div>
 
-          </div><!-- /tables-grid -->
-        </div><!-- /tableWrapper -->
+          </div>
+        </div>
+      </div>
+    </section>
 
-      </div><!-- /resultsContainer -->
+    <!-- Cloud History Section -->
+    <section class="history-section" id="historySection" aria-label="雲端歷史記錄">
+      <h2 class="section-title">
+        歷史記錄
+        <button class="btn-refresh" onclick="loadCloudHistory()" title="重新整理">↻</button>
+      </h2>
+      <div class="history-container">
+        <div id="historyList" class="history-list">
+          <div class="history-empty">
+            <p>尚未設定 Google 試算表連結</p>
+            <p class="history-setup-hint">請在 <code>app.js</code> 中填入 <code>APPS_SCRIPT_URL</code> 後即可使用雲端功能</p>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
   <footer class="site-footer">
-    <p>欣聯大心社區管理委員會 &copy; <span id="footerYear"></span> ｜ 各棟獨立抽籤，公正透明</p>
+    <p>欣聯大心社區管理委員會 &copy; <span id="footerYear"></span> ｜ 各棟獨立抽籤，公正透明 ｜ 資料儲存於 Google 試算表</p>
   </footer>
 
   <!-- Lottery animation overlay -->
