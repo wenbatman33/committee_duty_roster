@@ -408,6 +408,7 @@ async function saveToCloud() {
         orderA,
         orderB,
         orderC,
+        fullResults: drawResults,
         totalA: orderA.length,
         totalB: orderB.length,
         totalC: orderC.length,
