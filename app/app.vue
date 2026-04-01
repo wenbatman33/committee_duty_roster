@@ -56,6 +56,9 @@
             </button>
           </div>
           <div v-if="cloudMsg.text" class="cloud-msg" :class="'cloud-msg-' + cloudMsg.type">{{ cloudMsg.text }}</div>
+          <div class="sheet-link-row">
+            <a href="https://docs.google.com/spreadsheets/d/1gPsUht6evnqypuzWV9V--wN19tSZ2puWVvmQSsfo8v8/edit?usp=sharing" target="_blank" rel="noopener" class="sheet-link">📊 開啟 Google 試算表查看記錄</a>
+          </div>
         </div>
       </section>
 

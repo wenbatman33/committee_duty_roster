@@ -1198,6 +1198,26 @@ body > * { position: relative; z-index: 1; }
 .site-footer a:hover {
   text-decoration: underline;
 }
+.sheet-link-row {
+  width: 100%;
+  text-align: center;
+  padding: 6px 0 2px;
+}
+.sheet-link {
+  display: inline-block;
+  color: #1a73e8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 16px;
+  border: 2px solid #1a73e8;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.sheet-link:hover {
+  background: #1a73e8;
+  color: #fff;
+}
 
 /* =====================
    Print Styles
