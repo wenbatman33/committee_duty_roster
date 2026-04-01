@@ -1191,6 +1191,13 @@ body > * { position: relative; z-index: 1; }
   color: var(--clr-text-muted);
   letter-spacing: 0.05em;
 }
+.site-footer a {
+  color: var(--clr-primary, #1a73e8);
+  text-decoration: none;
+}
+.site-footer a:hover {
+  text-decoration: underline;
+}
 
 /* =====================
    Print Styles

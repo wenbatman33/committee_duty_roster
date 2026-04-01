@@ -184,7 +184,7 @@
     </main>
 
     <footer class="site-footer">
-      <p>欣聯大心社區管理委員會 &copy; {{ currentYear }} ｜ 各棟獨立抽籤，公正透明 ｜ 資料儲存於 Google 試算表</p>
+      <p>欣聯大心社區管理委員會 &copy; {{ currentYear }} ｜ 各棟獨立抽籤，公正透明 ｜ <a href="https://docs.google.com/spreadsheets/d/1gPsUht6evnqypuzWV9V--wN19tSZ2puWVvmQSsfo8v8/edit?usp=sharing" target="_blank" rel="noopener">📊 查看 Google 試算表</a></p>
     </footer>
 
     <!-- Overlay -->
