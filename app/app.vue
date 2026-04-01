@@ -27,9 +27,9 @@
             <p class="control-desc">系統將對 A、B、C 三棟住戶<strong>各自獨立</strong>進行隨機抽籤，每棟產生自己的輪值順序。</p>
             <div class="unit-stats">
               <span class="stat-chip stat-a">A棟 <strong>17</strong> 戶</span>
-              <span class="stat-chip stat-b">B棟 <strong>52</strong> 戶</span>
-              <span class="stat-chip stat-c">C棟 <strong>38</strong> 戶</span>
-              <span class="stat-chip stat-total">合計 <strong>107</strong> 戶</span>
+              <span class="stat-chip stat-b">B棟 <strong>51</strong> 戶</span>
+              <span class="stat-chip stat-c">C棟 <strong>37</strong> 戶</span>
+              <span class="stat-chip stat-total">合計 <strong>105</strong> 戶</span>
             </div>
           </div>
           <div class="control-buttons">
@@ -218,16 +218,18 @@ function generateUnits() {
     aUnits.push({ id: `A2-${f}F`, building: 'A', unit: 'A2', floor: f, label: `A2-${f}F` });
   }
 
-  // B棟
+  // B棟（無B4戶別，以B5取代；B棟2樓無B5）
   for (let f = 2; f <= 14; f++) {
-    for (let u = 1; u <= 4; u++) bUnits.push({ id: `B${u}-${f}F`, building: 'B', unit: `B${u}`, floor: f, label: `B${u}-${f}F` });
+    const bUnitNums = f === 2 ? [1, 2, 3] : [1, 2, 3, 5];
+    for (const u of bUnitNums) bUnits.push({ id: `B${u}-${f}F`, building: 'B', unit: `B${u}`, floor: f, label: `B${u}-${f}F` });
   }
 
   // C棟
   cUnits.push({ id: 'C2-2F', building: 'C', unit: 'C2', floor: 2, label: 'C2-2F' });
   cUnits.push({ id: 'C3-2F', building: 'C', unit: 'C3', floor: 2, label: 'C3-2F' });
   for (let f = 3; f <= 14; f++) {
-    for (let u = 1; u <= 3; u++) cUnits.push({ id: `C${u}-${f}F`, building: 'C', unit: `C${u}`, floor: f, label: `C${u}-${f}F` });
+    const cUnitNums = f === 11 ? [2, 3] : [1, 2, 3]; // C棟11樓無C1
+    for (const u of cUnitNums) cUnits.push({ id: `C${u}-${f}F`, building: 'C', unit: `C${u}`, floor: f, label: `C${u}-${f}F` });
   }
 
   return { A: aUnits, B: bUnits, C: cUnits };
@@ -242,13 +244,15 @@ floorsData.A.push({ floor: 1, units: ['A1-1F'] });
 
 for (let f = 14; f >= 2; f--) {
   const ids = [];
-  for (let u = 1; u <= 4; u++) ids.push(`B${u}-${f}F`);
+  const bUnitNums = f === 2 ? [1, 2, 3] : [1, 2, 3, 5];
+  for (const u of bUnitNums) ids.push(`B${u}-${f}F`);
   floorsData.B.push({ floor: f, units: ids });
 }
 
 for (let f = 14; f >= 3; f--) {
   const ids = [];
-  for (let u = 1; u <= 3; u++) ids.push(`C${u}-${f}F`);
+  const cUnitNums = f === 11 ? [2, 3] : [1, 2, 3]; // C棟11樓無C1
+  for (const u of cUnitNums) ids.push(`C${u}-${f}F`);
   floorsData.C.push({ floor: f, units: ids });
 }
 floorsData.C.push({ floor: 2, units: ['C2-2F', 'C3-2F'] });
@@ -277,6 +281,12 @@ const hasResults = computed(() => drawResults.A.length > 0 || drawResults.B.leng
 
 // --- 方法 ---
 onMounted(() => {
+  // 自動清除舊版 Service Worker，避免快取問題
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    });
+  }
   if (APPS_SCRIPT_URL) loadCloudHistory();
   loadSavedResult();
 });
