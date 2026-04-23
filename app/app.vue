@@ -303,6 +303,19 @@ function shuffleArray(arr) {
   return a;
 }
 
+function shuffleCWithRule(arr) {
+  const result = shuffleArray(arr);
+  const targetId = 'C1-4F';
+  const lastN = 15;
+  const startIdx = result.length - lastN;
+  const currentIdx = result.findIndex(u => u.id === targetId);
+  if (currentIdx !== -1 && currentIdx < startIdx) {
+    const swapIdx = startIdx + Math.floor(Math.random() * lastN);
+    [result[currentIdx], result[swapIdx]] = [result[swapIdx], result[currentIdx]];
+  }
+  return result;
+}
+
 function startDraw() {
   if (isDrawing.value) return;
   isDrawing.value = true;
@@ -318,7 +331,7 @@ function startDraw() {
     const results = {
       A: shuffleArray(ALL_UNITS.A),
       B: shuffleArray(ALL_UNITS.B),
-      C: shuffleArray(ALL_UNITS.C)
+      C: shuffleCWithRule(ALL_UNITS.C)
     };
     
     showOverlay.value = false;
